@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Asistencia · Seguidores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    box-sizing: border-box;
+    --green-900:#1F3A2E;
+    --green-800:#28492F;
+    --green-600:#3E6B4A;
+    --moss-500:#6B8F47;
+    --gold-500:#C9962C;
+    --gold-300:#E4C27A;
+    --rust-600:#A6432A;
+    --parchment-50:#F6F1E4;
+    --parchment-100:#EFE7D3;
+    --ink-900:#251F16;
+    --ink-600:#5B5240;
+    --line:#D9CDAE;
+    --card-bg:#FFFDF7;
+    --bg: var(--parchment-50);
+    --fg: var(--ink-900);
+    --fg-muted: var(--ink-600);
+    --border: var(--line);
+    --surface: var(--card-bg);
+    --present: var(--moss-500);
+    --absent: var(--rust-600);
+    --accent: var(--gold-500);
+    --primary: var(--green-900);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top: env(safe-area-inset-top, 0px); height:100%;}
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14201A;
+      --fg:#F1EAD8;
+      --fg-muted:#B8AD93;
+      --border:#33452F;
+      --surface:#1B2A21;
+      --card-bg:#1B2A21;
+      --present:#7EA85A;
+      --absent:#D6664B;
+      --accent:#DCAE4E;
+      --primary:#E4C27A;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14201A;
+    --fg:#F1EAD8;
+    --fg-muted:#B8AD93;
+    --border:#33452F;
+    --surface:#1B2A21;
+    --card-bg:#1B2A21;
+    --present:#7EA85A;
+    --absent:#D6664B;
+    --accent:#DCAE4E;
+    --primary:#E4C27A;
+  }
+  body{
+    margin:0;
+    min-height:100%;
+    background:var(--bg);
+    color:var(--fg);
+    font-family:"IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{
+    font-family:"Fraunces", Georgia, "Times New Roman", serif;
+    font-weight:600;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:0 16px 96px;
+  }
+  header.top{
+    background:var(--primary);
+    color:var(--parchment-50);
+    padding: calc(18px + env(safe-area-inset-top, 0px)) 18px 20px;
+  }
+  :root[data-theme="dark"] header.top, @supports (color: red){}
+  header.top .inner{
+    max-width:640px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .badge{
+    flex:none;
+    width:46px;height:46px;
+    border-radius:50%;
+    border:2px solid var(--gold-300);
+    display:flex;align-items:center;justify-content:center;
+    font-family:"Fraunces",serif;
+    font-size:20px;
+    color:var(--gold-300);
+    background: rgba(0,0,0,0.12);
+  }
+  header.top h1{
+    font-size:19px;
+    color:#fff;
+    line-height:1.25;
+  }
+  header.top .sub{
+    font-size:12.5px;
+    color:var(--gold-300);
+    margin-top:2px;
+    font-family:"IBM Plex Mono", monospace;
+    letter-spacing:0.02em;
+  }
+  nav.tabs{
+    display:flex;
+    max-width:640px;
+    margin:0 auto;
+    border-bottom:1px solid var(--border);
+    position:sticky;
+    top:0;
+    background:var(--bg);
+    z-index:5;
+    overflow-x:auto;
+  }
+  nav.tabs button{
+    flex:1;
+    min-width:84px;
+    background:none;
+    border:none;
+    color:var(--fg-muted);
+    font-family:"IBM Plex Sans", sans-serif;
+    font-size:13.5px;
+    font-weight:600;
+    padding:13px 6px 11px;
+    cursor:pointer;
+    border-bottom:3px solid transparent;
+  }
+  nav.tabs button.active{
+    color:var(--fg);
+    border-bottom-color:var(--accent);
+  }
+  section.view{display:none; padding-top:18px;}
+  section.view.active{display:block;}
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:16px;
+    margin-bottom:14px;
+  }
+  .panel h2{font-size:16px; margin-bottom:10px;}
+  .panel p.hint{
+    color:var(--fg-muted);
+    font-size:13px;
+    margin:0 0 12px;
+    line-height:1.5;
+  }
+  label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--fg-muted);
+    margin-bottom:4px;
+    text-transform:none;
+  }
+  input[type=text], input[type=date]{
+    width:100%;
+    padding:10px 11px;
+    font-size:15px;
+    border:1px solid var(--border);
+    border-radius:5px;
+    background:var(--bg);
+    color:var(--fg);
+    font-family:inherit;
+  }
+  input:focus, button:focus-visible, select:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:1px;
+  }
+  .row{display:flex; gap:8px; align-items:flex-end;}
+  .row > *{flex:1;}
+  button.btn{
+    padding:10px 16px;
+    border-radius:5px;
+    border:1px solid var(--primary);
+    background:var(--primary);
+    color:var(--parchment-50);
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    font-family:inherit;
+    white-space:nowrap;
+  }
+  :root[data-theme="dark"] button.btn{ color:var(--green-900); }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) button.btn{ color:var(--green-900); } }
+  button.btn.ghost{
+    background:transparent;
+    color:var(--primary);
+  }
+  :root[data-theme="dark"] button.btn.ghost, @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) button.btn.ghost{ color:var(--accent); border-color:var(--accent);} }
+  button.btn.small{
+    padding:6px 10px;
+    font-size:12.5px;
+  }
+  ul.list{list-style:none; margin:0; padding:0;}
+  ul.list li{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+    font-size:14.5px;
+  }
+  ul.list li:last-child{border-bottom:none;}
+  .icon-btn{
+    background:none;
+    border:none;
+    color:var(--fg-muted);
+    font-size:13px;
+    cursor:pointer;
+    padding:4px 6px;
+    font-family:inherit;
+  }
+  .icon-btn.danger{color:var(--absent);}
+  .empty{
+    color:var(--fg-muted);
+    font-size:13.5px;
+    text-align:center;
+    padding:24px 8px;
+    border:1px dashed var(--border);
+    border-radius:6px;
+  }
+  select{
+    width:100%;
+    padding:10px 11px;
+    font-size:15px;
+    border:1px solid var(--border);
+    border-radius:5px;
+    background:var(--bg);
+    color:var(--fg);
+    font-family:inherit;
+  }
+  .lesson-item{
+    display:grid;
+    grid-template-columns:1fr 1fr auto;
+    gap:8px;
+    padding:9px 0;
+    border-bottom:1px solid var(--border);
+    align-items:center;
+  }
+  .lesson-item:last-child{border-bottom:none;}
+  .lesson-item input{font-size:13.5px; padding:8px 9px;}
+  .att-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:2px;
+  }
+  .att-header .count{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12.5px;
+    color:var(--fg-muted);
+  }
+  .att-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:11px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .att-row:last-child{border-bottom:none;}
+  .att-row .name{font-size:14.5px;}
+  .toggle{
+    display:flex;
+    border:1px solid var(--border);
+    border-radius:20px;
+    overflow:hidden;
+    flex:none;
+  }
+  .toggle button{
+    border:none;
+    background:var(--bg);
+    color:var(--fg-muted);
+    font-size:12px;
+    font-weight:600;
+    padding:6px 12px;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .toggle button.on.present{background:var(--present); color:#fff;}
+  .toggle button.on.absent{background:var(--absent); color:#fff;}
+  table.summary{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12.5px;
+  }
+  table.summary th, table.summary td{
+    padding:7px 5px;
+    text-align:center;
+    border-bottom:1px solid var(--border);
+  }
+  table.summary th:first-child, table.summary td:first-child{
+    text-align:left;
+    padding-left:0;
+  }
+  table.summary thead th{
+    color:var(--fg-muted);
+    font-weight:600;
+    font-size:11px;
+  }
+  .pct{font-family:"IBM Plex Mono", monospace; font-weight:600;}
+  .pct.low{color:var(--absent);}
+  .pct.high{color:var(--present);}
+  .dot{
+    display:inline-block;
+    width:9px;height:9px;
+    border-radius:50%;
+  }
+  .dot.present{background:var(--present);}
+  .dot.absent{background:var(--absent);}
+  .dot.none{background:var(--border);}
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    transform:translateX(-50%);
+    background:var(--primary);
+    color:var(--parchment-50);
+    padding:10px 18px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:600;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease;
+    z-index:20;
+    max-width:calc(100% - 40px);
+    text-align:center;
+  }
+  .toast.show{opacity:1;}
+  .backup-row{
+    display:flex;
+    gap:8px;
+    margin-top:4px;
+  }
+  .backup-row button{flex:1;}
+  input[type=file]{display:none;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner">
+    <div class="badge">✦</div>
+    <div>
+      <h1>Exploradores del Rey</h1>
+      <div class="sub">DEPARTAMENTO DE SEGUIDORES</div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button data-view="asistencia" class="active">Asistencia</button>
+  <button data-view="trimestre">Trimestre</button>
+  <button data-view="seguidores">Seguidores</button>
+  <button data-view="resumen">Resumen</button>
+</nav>
+
+<div class="wrap">
+
+  <!-- ASISTENCIA -->
+  <section class="view active" id="view-asistencia">
+    <div class="panel" id="asistencia-panel">
+      <!-- rendered by JS -->
+    </div>
+  </section>
+
+  <!-- TRIMESTRE -->
+  <section class="view" id="view-trimestre">
+    <div class="panel">
+      <h2>Trimestre actual</h2>
+      <p class="hint">Cada trimestre tiene 5 lecciones, una por cada sábado. Ponle un nombre y ajusta las fechas si alguna lección se recorre.</p>
+      <div id="quarter-picker"></div>
+    </div>
+    <div class="panel">
+      <h2>Crear nuevo trimestre</h2>
+      <p class="hint">Se generan 5 sábados consecutivos a partir de la fecha que elijas como primera lección.</p>
+      <label for="new-q-name">Nombre del trimestre</label>
+      <input type="text" id="new-q-name" placeholder="Ej. Trimestre 1 · Ene–Mar 2027">
+      <div style="height:10px"></div>
+      <label for="new-q-start">Fecha de la primera lección</label>
+      <input type="date" id="new-q-start">
+      <div style="height:12px"></div>
+      <button class="btn" id="btn-create-quarter">Crear trimestre</button>
+    </div>
+    <div class="panel" id="lessons-panel">
+      <h2>Lecciones de este trimestre</h2>
+      <div id="lessons-list"></div>
+    </div>
+  </section>
+
+  <!-- SEGUIDORES -->
+  <section class="view" id="view-seguidores">
+    <div class="panel">
+      <h2>Agregar muchacho/a</h2>
+      <div class="row">
+        <div>
+          <label for="new-student-name">Nombre completo</label>
+          <input type="text" id="new-student-name" placeholder="Nombre y apellido">
+        </div>
+        <button class="btn" id="btn-add-student">Agregar</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Lista de Seguidores</h2>
+      <ul class="list" id="students-list"></ul>
+    </div>
+    <div class="panel">
+      <h2>Respaldo de datos</h2>
+      <p class="hint">Los datos se guardan solo en este dispositivo/navegador. Si vas a usar la app desde el celular y la computadora, exporta aquí y luego importa en el otro equipo para tener todo igual.</p>
+      <div class="backup-row">
+        <button class="btn ghost" id="btn-export">Exportar (.json)</button>
+        <button class="btn ghost" id="btn-import">Importar</button>
+      </div>
+      <input type="file" id="file-import" accept="application/json">
+    </div>
+  </section>
+
+  <!-- RESUMEN -->
+  <section class="view" id="view-resumen">
+    <div class="panel">
+      <h2>Resumen del trimestre</h2>
+      <p class="hint" id="resumen-hint"></p>
+      <div id="resumen-content"></div>
+    </div>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "exploradores_seguidores_v1";
+  var DAY_NAMES = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  function loadData(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        var parsed = JSON.parse(raw);
+        if(parsed && typeof parsed === "object") return parsed;
+      }
+    }catch(e){ /* storage unavailable or corrupt, fall through to default */ }
+    return { students: [], quarters: [], currentQuarterId: null, attendance: {} };
+  }
+
+  var data = loadData();
+
+  function saveData(){
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      return true;
+    }catch(e){
+      showToast("No se pudo guardar (almacenamiento no disponible)");
+      return false;
+    }
+  }
+
+  function showToast(msg){
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(showToast._h);
+    showToast._h = setTimeout(function(){ t.classList.remove("show"); }, 1800);
+  }
+
+  function fmtDate(iso){
+    if(!iso) return "Sin fecha";
+    var parts = iso.split("-");
+    if(parts.length !== 3) return iso;
+    var d = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+    if(isNaN(d.getTime())) return iso;
+    return DAY_NAMES[d.getDay()] + " " + d.getDate() + "/" + (d.getMonth()+1);
+  }
+
+  function isoAddDays(iso, days){
+    var parts = iso.split("-");
+    var d = new Date(parseInt(parts[0],10), parseInt(parts[1],10)-1, parseInt(parts[2],10));
+    d.setDate(d.getDate() + days);
+    var y = d.getFullYear();
+    var m = (d.getMonth()+1).toString().padStart(2,"0");
+    var day = d.getDate().toString().padStart(2,"0");
+    return y + "-" + m + "-" + day;
+  }
+
+  function currentQuarter(){
+    return data.quarters.find(function(q){ return q.id === data.currentQuarterId; }) || null;
+  }
+
+  function ensureAttendanceBucket(quarterId, studentId){
+    if(!data.attendance[quarterId]) data.attendance[quarterId] = {};
+    if(!data.attendance[quarterId][studentId]) data.attendance[quarterId][studentId] = {};
+    return data.attendance[quarterId][studentId];
+  }
+
+  // ---------- TABS ----------
+  var tabButtons = document.querySelectorAll("nav.tabs button");
+  tabButtons.forEach(function(btn){
+    btn.addEventListener("click", function(){
+      tabButtons.forEach(function(b){ b.classList.remove("active"); });
+      btn.classList.add("active");
+      document.querySelectorAll("section.view").forEach(function(v){ v.classList.remove("active"); });
+      document.getElementById("view-" + btn.dataset.view).classList.add("active");
+      renderAll();
+    });
+  });
+
+  // ---------- SEGUIDORES ----------
+  document.getElementById("btn-add-student").addEventListener("click", function(){
+    var input = document.getElementById("new-student-name");
+    var name = input.value.trim();
+    if(!name){ showToast("Escribe un nombre"); return; }
+    data.students.push({ id: uid(), name: name, active: true });
+    input.value = "";
+    saveData();
+    renderStudents();
+    renderAttendanceView();
+    renderResumen();
+    showToast("Agregado a la lista");
+  });
+
+  document.getElementById("new-student-name").addEventListener("keydown", function(e){
+    if(e.key === "Enter") document.getElementById("btn-add-student").click();
+  });
+
+  function renderStudents(){
+    var ul = document.getElementById("students-list");
+    ul.innerHTML = "";
+    if(data.students.length === 0){
+      ul.innerHTML = '<div class="empty">Todavía no has agregado a ningún seguidor.</div>';
+      return;
+    }
+    data.students.forEach(function(s){
+      var li = document.createElement("li");
+      var span = document.createElement("span");
+      span.textContent = s.name;
+      var del = document.createElement("button");
+      del.className = "icon-btn danger";
+      del.textContent = "Quitar";
+      del.addEventListener("click", function(){
+        if(confirm('¿Quitar a "' + s.name + '" de la lista? Se conservará su historial de asistencia ya registrado.')){
+          s.active = false;
+          saveData();
+          renderStudents();
+          renderAttendanceView();
+          renderResumen();
+        }
+      });
+      li.appendChild(span);
+      li.appendChild(del);
+      ul.appendChild(li);
+    });
+  }
+
+  // export / import
+  document.getElementById("btn-export").addEventListener("click", async function(){
+    var today = new Date().toISOString().slice(0,10);
+    var filename = "asistencia-seguidores-" + today + ".json";
+    var json = JSON.stringify(data, null, 2);
+    try{
+      var downloads = (window.claude && typeof window.claude.use === "function")
+        ? await window.claude.use("downloads")
+        : null;
+      if(downloads){
+        var result = await downloads.save({ filename: filename, data: json });
+        showToast(result.status === "delivered" ? "Enviado" : "Guardado");
+        return;
+      }
+    }catch(e){
+      if(e && e.code === "declined"){ return; }
+      // fall through to the plain browser download below
+    }
+    try{
+      var blob = new Blob([json], {type:"application/json"});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      showToast("Descarga iniciada");
+    }catch(e2){
+      showToast("No se pudo exportar en este navegador");
+    }
+  });
+
+  document.getElementById("btn-import").addEventListener("click", function(){
+    document.getElementById("file-import").click();
+  });
+
+  document.getElementById("file-import").addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      try{
+        var imported = JSON.parse(reader.result);
+        if(!imported || typeof imported !== "object" || !Array.isArray(imported.students)){
+          showToast("El archivo no tiene el formato esperado");
+          return;
+        }
+        if(confirm("Esto reemplazará los datos actuales de este dispositivo con los del archivo. ¿Continuar?")){
+          data = {
+            students: imported.students || [],
+            quarters: imported.quarters || [],
+            currentQuarterId: imported.currentQuarterId || null,
+            attendance: imported.attendance || {}
+          };
+          saveData();
+          renderAll();
+          showToast("Datos importados");
+        }
+      }catch(err){
+        showToast("No se pudo leer el archivo");
+      }
+      e.target.value = "";
+    };
+    reader.readAsText(file);
+  });
+
+  // ---------- TRIMESTRE ----------
+  document.getElementById("btn-create-quarter").addEventListener("click", function(){
+    var nameInput = document.getElementById("new-q-name");
+    var startInput = document.getElementById("new-q-start");
+    var name = nameInput.value.trim();
+    var start = startInput.value;
+    if(!name){ showToast("Ponle un nombre al trimestre"); return; }
+    if(!start){ showToast("Elige la fecha de la primera lección"); return; }
+    var lessons = [];
+    for(var i=0;i<5;i++){
+      lessons.push({ id: uid(), label: "Lección " + (i+1), date: isoAddDays(start, i*7) });
+    }
+    var q = { id: uid(), name: name, lessons: lessons };
+    data.quarters.push(q);
+    data.currentQuarterId = q.id;
+    nameInput.value = "";
+    startInput.value = "";
+    saveData();
+    renderAll();
+    showToast('Trimestre "' + name + '" creado');
+  });
+
+  function renderQuarterPicker(){
+    var host = document.getElementById("quarter-picker");
+    if(data.quarters.length === 0){
+      host.innerHTML = '<div class="empty">Aún no hay trimestres. Crea el primero abajo.</div>';
+      return;
+    }
+    var select = document.createElement("select");
+    data.quarters.forEach(function(q){
+      var opt = document.createElement("option");
+      opt.value = q.id;
+      opt.textContent = q.name;
+      if(q.id === data.currentQuarterId) opt.selected = true;
+      select.appendChild(opt);
+    });
+    select.addEventListener("change", function(){
+      data.currentQuarterId = select.value;
+      saveData();
+      renderAll();
+    });
+    host.innerHTML = "";
+    host.appendChild(select);
+  }
+
+  function renderLessonsPanel(){
+    var panel = document.getElementById("lessons-panel");
+    var list = document.getElementById("lessons-list");
+    var q = currentQuarter();
+    if(!q){
+      panel.style.display = "none";
+      return;
+    }
+    panel.style.display = "";
+    list.innerHTML = "";
+    q.lessons.forEach(function(lesson, idx){
+      var row = document.createElement("div");
+      row.className = "lesson-item";
+
+      var labelInput = document.createElement("input");
+      labelInput.type = "text";
+      labelInput.value = lesson.label;
+      labelInput.addEventListener("change", function(){
+        lesson.label = labelInput.value.trim() || ("Lección " + (idx+1));
+        saveData();
+        renderAttendanceView();
+        renderResumen();
+      });
+
+      var dateInput = document.createElement("input");
+      dateInput.type = "date";
+      dateInput.value = lesson.date;
+      dateInput.addEventListener("change", function(){
+        lesson.date = dateInput.value;
+        saveData();
+        renderAttendanceView();
+        renderResumen();
+      });
+
+      var tag = document.createElement("span");
+      tag.style.fontSize = "11.5px";
+      tag.style.color = "var(--fg-muted)";
+      tag.style.fontFamily = "'IBM Plex Mono', monospace";
+      tag.textContent = fmtDate(lesson.date);
+
+      row.appendChild(labelInput);
+      row.appendChild(dateInput);
+      row.appendChild(tag);
+      list.appendChild(row);
+    });
+  }
+
+  // ---------- ASISTENCIA ----------
+  var selectedLessonId = null;
+
+  function renderAttendanceView(){
+    var panel = document.getElementById("asistencia-panel");
+    var q = currentQuarter();
+    var activeStudents = data.students.filter(function(s){ return s.active !== false; });
+
+    if(!q){
+      panel.innerHTML = '<div class="empty">Primero crea un trimestre en la pestaña "Trimestre".</div>';
+      return;
+    }
+    if(activeStudents.length === 0){
+      panel.innerHTML = '<div class="empty">Primero agrega seguidores en la pestaña "Seguidores".</div>';
+      return;
+    }
+
+    if(!selectedLessonId || !q.lessons.some(function(l){ return l.id === selectedLessonId; })){
+      selectedLessonId = q.lessons[0].id;
+    }
+
+    panel.innerHTML = "";
+
+    var h = document.createElement("h2");
+    h.textContent = q.name;
+    panel.appendChild(h);
+
+    var selWrap = document.createElement("div");
+    selWrap.style.margin = "10px 0 4px";
+    var label = document.createElement("label");
+    label.textContent = "Lección";
+    var select = document.createElement("select");
+    q.lessons.forEach(function(l){
+      var opt = document.createElement("option");
+      opt.value = l.id;
+      opt.textContent = l.label + " · " + fmtDate(l.date);
+      if(l.id === selectedLessonId) opt.selected = true;
+      select.appendChild(opt);
+    });
+    select.addEventListener("change", function(){
+      selectedLessonId = select.value;
+      renderAttendanceList();
+    });
+    selWrap.appendChild(label);
+    selWrap.appendChild(select);
+    panel.appendChild(selWrap);
+
+    var headerRow = document.createElement("div");
+    headerRow.className = "att-header";
+    headerRow.style.marginTop = "14px";
+    var span1 = document.createElement("span");
+    span1.style.fontSize = "12px";
+    span1.style.color = "var(--fg-muted)";
+    span1.style.fontWeight = "600";
+    span1.textContent = "SEGUIDOR";
+    var countSpan = document.createElement("span");
+    countSpan.className = "count";
+    countSpan.id = "att-count";
+    headerRow.appendChild(span1);
+    headerRow.appendChild(countSpan);
+    panel.appendChild(headerRow);
+
+    var listHost = document.createElement("div");
+    listHost.id = "att-list-host";
+    panel.appendChild(listHost);
+
+    renderAttendanceList();
+  }
+
+  function renderAttendanceList(){
+    var panel = document.getElementById("asistencia-panel");
+    var listHost = document.getElementById("att-list-host");
+    var countSpan = document.getElementById("att-count");
+    if(!listHost) return;
+    var q = currentQuarter();
+    var activeStudents = data.students.filter(function(s){ return s.active !== false; });
+
+    listHost.innerHTML = "";
+    var presentCount = 0;
+
+    activeStudents.forEach(function(s){
+      var bucket = ensureAttendanceBucket(q.id, s.id);
+      var state = bucket[selectedLessonId]; // true / false / undefined
+
+      if(state === true) presentCount++;
+
+      var row = document.createElement("div");
+      row.className = "att-row";
+
+      var name = document.createElement("span");
+      name.className = "name";
+      name.textContent = s.name;
+
+      var toggle = document.createElement("div");
+      toggle.className = "toggle";
+
+      var btnPresent = document.createElement("button");
+      btnPresent.textContent = "Presente";
+      btnPresent.className = state === true ? "on present" : "";
+      btnPresent.addEventListener("click", function(){
+        bucket[selectedLessonId] = true;
+        saveData();
+        renderAttendanceList();
+        renderResumen();
+      });
+
+      var btnAbsent = document.createElement("button");
+      btnAbsent.textContent = "Ausente";
+      btnAbsent.className = state === false ? "on absent" : "";
+      btnAbsent.addEventListener("click", function(){
+        bucket[selectedLessonId] = false;
+        saveData();
+        renderAttendanceList();
+        renderResumen();
+      });
+
+      toggle.appendChild(btnPresent);
+      toggle.appendChild(btnAbsent);
+      row.appendChild(name);
+      row.appendChild(toggle);
+      listHost.appendChild(row);
+    });
+
+    if(countSpan){
+      countSpan.textContent = presentCount + " / " + activeStudents.length + " presentes";
+    }
+  }
+
+  // ---------- RESUMEN ----------
+  function renderResumen(){
+    var host = document.getElementById("resumen-content");
+    var hint = document.getElementById("resumen-hint");
+    var q = currentQuarter();
+    var activeStudents = data.students.filter(function(s){ return s.active !== false; });
+
+    if(!q){
+      host.innerHTML = '<div class="empty">Crea un trimestre para ver el resumen.</div>';
+      hint.textContent = "";
+      return;
+    }
+    if(activeStudents.length === 0){
+      host.innerHTML = '<div class="empty">Agrega seguidores para ver el resumen.</div>';
+      hint.textContent = "";
+      return;
+    }
+
+    hint.textContent = q.name + " · " + q.lessons.length + " lecciones";
+
+    var table = document.createElement("table");
+    table.className = "summary";
+
+    var thead = document.createElement("thead");
+    var trh = document.createElement("tr");
+    var thName = document.createElement("th");
+    thName.textContent = "Seguidor";
+    trh.appendChild(thName);
+    q.lessons.forEach(function(l, i){
+      var th = document.createElement("th");
+      th.textContent = "L" + (i+1);
+      trh.appendChild(th);
+    });
+    var thPct = document.createElement("th");
+    thPct.textContent = "%";
+    trh.appendChild(thPct);
+    thead.appendChild(trh);
+    table.appendChild(thead);
+
+    var tbody = document.createElement("tbody");
+    activeStudents.forEach(function(s){
+      var bucket = (data.attendance[q.id] && data.attendance[q.id][s.id]) || {};
+      var tr = document.createElement("tr");
+      var tdName = document.createElement("td");
+      tdName.textContent = s.name;
+      tr.appendChild(tdName);
+
+      var presentCount = 0;
+      var recorded = 0;
+      q.lessons.forEach(function(l){
+        var td = document.createElement("td");
+        var state = bucket[l.id];
+        var dot = document.createElement("span");
+        if(state === true){ dot.className = "dot present"; presentCount++; recorded++; }
+        else if(state === false){ dot.className = "dot absent"; recorded++; }
+        else{ dot.className = "dot none"; }
+        td.appendChild(dot);
+        tr.appendChild(td);
+      });
+
+      var tdPct = document.createElement("td");
+      if(recorded === 0){
+        tdPct.textContent = "—";
+        tdPct.className = "pct";
+      }else{
+        var pct = Math.round((presentCount / q.lessons.length) * 100);
+        tdPct.textContent = pct + "%";
+        tdPct.className = "pct " + (pct >= 80 ? "high" : (pct < 50 ? "low" : ""));
+      }
+      tr.appendChild(tdPct);
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+
+    host.innerHTML = "";
+    host.appendChild(table);
+  }
+
+  // ---------- RENDER ALL ----------
+  function renderAll(){
+    renderStudents();
+    renderQuarterPicker();
+    renderLessonsPanel();
+    renderAttendanceView();
+    renderResumen();
+  }
+
+  // Default start date suggestion: next Saturday
+  (function setDefaultStartDate(){
+    var input = document.getElementById("new-q-start");
+    var d = new Date();
+    var day = d.getDay(); // 0 = domingo ... 6 = sábado
+    var diff = (6 - day + 7) % 7;
+    if(diff === 0 && d.getHours() >= 20) diff = 7; // if it's already saturday night, suggest next week
+    d.setDate(d.getDate() + diff);
+    var iso = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    input.value = iso;
+  })();
+
+  renderAll();
+})();
+</script>
+</body>
+</html>
